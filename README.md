@@ -3,6 +3,6 @@
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/kamikazechaser/util.svg)](https://pkg.go.dev/github.com/kamikazechaser/util)
 
-## License
+## License and Attributions
 
-[LGPL-3.0](COPYING.LESSER).
+Unless otherwise stated in a directory-specific NOTICE file, all code in this repository is licensed under [LGPL-3.0](COPYING.LESSER).
