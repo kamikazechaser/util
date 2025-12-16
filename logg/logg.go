@@ -1,5 +1,5 @@
 // Package logg provides a wrapper around Go's structured logging package slog,
-// offering convenient configuration options for different log formats and levels.
+// offering convenient configuration options and preset handlers for different log formats and levels.
 //
 // The main entry point is NewLogg, which creates a new logger with customizable options.
 //
@@ -30,11 +30,12 @@ type (
 	Opts struct {
 		// Writer defaults to os.Stderr if nil
 		Writer io.Writer
-		// Component enriches each log line with a componenent key/value.
+		// Component enriches each log line with a componenent value.
 		// Useful for aggregating/filtering with your log collector.
 		Component string
-		// Group nests individual keys in the format group.child.
-		Group string
+		// ExtraAttributes adds extra attributes to each log line.
+		// Useful for adding information like region, node, environment, etc.
+		ExtraAttributes []slog.Attr
 		// Log format.
 		// Logfmt is the default log format
 		// Human prints colourized logs useful for CLIs or development
@@ -64,36 +65,32 @@ func NewLogg(o Opts) *slog.Logger {
 		w = os.Stderr
 	}
 
+	addSource := o.LogLevel <= slog.LevelDebug
+
 	var handler slog.Handler
-
-	addSource := o.LogLevel == slog.LevelDebug
-
 	switch o.FormatType {
 	case Human:
 		handler = tint.NewHandler(w, &tint.Options{
 			Level:      o.LogLevel,
 			TimeFormat: time.Kitchen,
 			AddSource:  addSource,
-		})
+		}).WithAttrs(o.ExtraAttributes)
 	case JSON:
 		handler = slog.NewJSONHandler(w, &slog.HandlerOptions{
 			Level:     o.LogLevel,
 			AddSource: addSource,
-		})
-	default:
+		}).WithAttrs(o.ExtraAttributes)
+	case Logfmt:
 		handler = slog.NewTextHandler(w, &slog.HandlerOptions{
 			Level:     o.LogLevel,
 			AddSource: addSource,
-		})
+		}).WithAttrs(o.ExtraAttributes)
 	}
 
 	logger := slog.New(handler)
 
 	if o.Component != "" {
 		logger = logger.With("component", o.Component)
-	}
-	if o.Group != "" {
-		logger = logger.WithGroup(o.Group)
 	}
 
 	return logger
